@@ -2,11 +2,14 @@
 node_modules/
 frontend/node_modules/
 
-# Build files
+# Build output
 dist/
 frontend/dist/
 
-# Environment variables
+# TypeScript build cache
+*.tsbuildinfo
+
+# Environment files
 .env
 .env.*
 !.env.example
