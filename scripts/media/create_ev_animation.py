@@ -1,5 +1,5 @@
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageChops
 import imageio.v2 as imageio
 import numpy as np
 
@@ -15,6 +15,10 @@ def masked_sprite(source: Image.Image, polygon: list[tuple[int, int]]) -> Image.
     mask = Image.new("L", source.size, 0)
     ImageDraw.Draw(mask).polygon(polygon, fill=255)
     sprite = source.convert("RGBA")
+    # Preserve the source alpha and feather the raster cutout edge to avoid
+    # visible polygon/jaggies when the sprite moves across the video frame.
+    mask = ImageChops.multiply(sprite.getchannel("A"), mask)
+    mask = mask.filter(ImageFilter.GaussianBlur(1.15))
     sprite.putalpha(mask)
     return sprite
 
@@ -43,6 +47,8 @@ def build_frames() -> list[Image.Image]:
     cable_draw.line([(208, 315), (218, 510), (260, 715), (355, 850), (550, 900)], fill=255, width=18, joint="curve")
     cable.putalpha(cable_mask)
     cable_source = source.copy()
+    cable_mask = ImageChops.multiply(cable_source.getchannel("A"), cable_mask)
+    cable_mask = cable_mask.filter(ImageFilter.GaussianBlur(1.0))
     cable_source.putalpha(cable_mask)
 
     frames: list[Image.Image] = []
